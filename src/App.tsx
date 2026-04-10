@@ -212,30 +212,31 @@ export default function App() {
       style={{ background: "#060406" }}>
 
       {/* ─── NAVBAR ─── */}
-      <nav className="fixed top-5 left-1/2 -translate-x-1/2 z-50 w-[min(92%,660px)]">
-        <motion.div
-          initial={{ opacity: 0, y: -16 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.4, ...spring }}
-          className={`${liquidGlass} rounded-full px-7 py-3.5 flex items-center justify-between`}
+      <nav className="fixed top-5 left-1/2 -translate-x-1/2 z-50 w-[min(92%,760px)]">
+  <motion.div
+    initial={{ opacity: 0, y: -16 }}
+    animate={{ opacity: 1, y: 0 }}
+    transition={{ delay: 0.4, ...spring }}
+    className={`${liquidGlass} rounded-full px-10 py-4 flex items-center justify-between`}
+  >
+    <span className="tracking-[0.45em] text-[12px] font-semibold text-white/90 font-[system-ui]">
+      LUXE
+    </span>
+
+    <div className="flex gap-10 text-[13px] text-white/60 font-[system-ui]">
+      {["Story", "Fragrance", "Contact"].map((l) => (
+        <a
+          key={l}
+          href={`#${l.toLowerCase()}`}
+          className="hover:text-white/90 transition-colors duration-300 relative group"
         >
-          <span className="tracking-[0.45em] text-[11px] font-semibold text-white/90 font-[system-ui]">
-            LUXE
-          </span>
-          <div className="flex gap-7 text-[12px] text-white/50 font-[system-ui]">
-            {["Story", "Fragrance", "Contact"].map((l) => (
-              <a
-                key={l}
-                href={`#${l.toLowerCase()}`}
-                className="hover:text-white/90 transition-colors duration-300 relative group"
-              >
-                {l}
-                <span className="absolute -bottom-0.5 left-0 right-0 h-px bg-white/30 scale-x-0 group-hover:scale-x-100 transition-transform duration-300 origin-left" />
-              </a>
-            ))}
-          </div>
-        </motion.div>
-      </nav>
+          {l}
+          <span className="absolute -bottom-1 left-0 right-0 h-px bg-white/30 scale-x-0 group-hover:scale-x-100 transition-transform duration-300 origin-left" />
+        </a>
+      ))}
+    </div>
+  </motion.div>
+</nav>
 
       {/* ─── HERO ─── */}
       <section className="relative h-screen w-full overflow-hidden">
