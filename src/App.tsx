@@ -53,7 +53,7 @@ const products = [
     sizes: ["50ml", "100ml", "200ml"],
     accent: "#7ecfe4",
     bg: "radial-gradient(ellipse 90% 70% at 28% 50%, #0a2540 0%, #040e1a 68%)",
-    image: "/images/azure.jpg",
+    image: "/images/azure.png",
   },
 ];
 
@@ -271,7 +271,7 @@ export default function App() {
             transition={{ duration: 1.3, ease: EASE_OUT }}
           >
             <img
-              src="https://images.unsplash.com/photo-1619994403073-2cec9c04fdb8?q=80&w=1200"
+              src="https://res.cloudinary.com/dghoya7tk/image/upload/v1775826662/Gemini_Generated_Image_ltzsldltzsldltzs_h4rfdk.png"
               alt="Our story"
             />
             <div className="story-image-ring" />
