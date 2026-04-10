@@ -42,7 +42,8 @@ const products = [
 export default function App() {
   const [index, setIndex] = useState(0);
   const [open, setOpen] = useState(false);
-  const productRef = useRef<HTMLDivElement>(null);
+  const currentRef = useRef<HTMLDivElement>(null);
+  const nextRef = useRef<HTMLDivElement>(null);
   const modalRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -50,34 +51,50 @@ export default function App() {
   }, [index]);
 
   const changeProduct = (dir: "next" | "prev") => {
-    if (!productRef.current) return;
     if (dir === "next" && index === products.length - 1) return;
     if (dir === "prev" && index === 0) return;
 
-    const xOut = dir === "next" ? "-120%" : "120%";
-    const xIn = dir === "next" ? "120%" : "-120%";
+    const newIndex = dir === "next" ? index + 1 : index - 1;
 
-    gsap.to(productRef.current, { x: xOut, duration: 0.6, ease: "power3.inOut" });
+    if (!currentRef.current || !nextRef.current) return;
 
-    setTimeout(() => {
-      setIndex((i) => (dir === "next" ? i + 1 : i - 1));
-      gsap.fromTo(productRef.current, { x: xIn }, { x: "0%", duration: 0.6, ease: "power3.inOut" });
-    }, 600);
+    gsap.set(nextRef.current, {
+      x: dir === "next" ? "100%" : "-100%",
+      opacity: 0
+    });
+
+    gsap.to(currentRef.current, {
+      x: dir === "next" ? "-40%" : "40%",
+      opacity: 0,
+      scale: 0.9,
+      duration: 0.8,
+      ease: "power3.inOut"
+    });
+
+    setIndex(newIndex);
+
+    gsap.to(nextRef.current, {
+      x: "0%",
+      opacity: 1,
+      scale: 1,
+      duration: 0.9,
+      ease: "power3.out"
+    });
   };
 
   const openModal = () => {
     setOpen(true);
     setTimeout(() => {
       if (modalRef.current) {
-        gsap.fromTo(modalRef.current, { scale: 0.7, opacity: 0 }, { scale: 1, opacity: 1, duration: 0.4 });
+        gsap.fromTo(modalRef.current, { scale: 0.85, opacity: 0 }, { scale: 1, opacity: 1, duration: 0.5 });
       }
     }, 10);
   };
 
   const closeModal = () => {
     if (modalRef.current) {
-      gsap.to(modalRef.current, { scale: 0.7, opacity: 0, duration: 0.3 });
-      setTimeout(() => setOpen(false), 300);
+      gsap.to(modalRef.current, { scale: 0.85, opacity: 0, duration: 0.4 });
+      setTimeout(() => setOpen(false), 400);
     }
   };
 
@@ -97,26 +114,32 @@ export default function App() {
       </section>
 
       <section className="story" id="story">
-        <h1>Crafted Identity</h1>
-        <p>Inspired by emotion, built for presence and memory</p>
+        <div className="story-inner">
+          <h1>Crafted Identity</h1>
+          <p>Inspired by emotion, built for presence and memory</p>
+        </div>
       </section>
 
       <section className="product" id="product">
         <button className="arrow left" onClick={() => changeProduct("prev")}>‹</button>
 
-        <div className="product-content" ref={productRef}>
-          <div className="image-placeholder">IMAGE</div>
-          <h2>{products[index].name}</h2>
-          <h4>{products[index].tagline}</h4>
-          <p>{products[index].description}</p>
-          <div className="notes">
-            {products[index].notes.map((n) => (
-              <span key={n}>{n}</span>
-            ))}
+        <div className="product-stage">
+          <div className="product-card" ref={currentRef}>
+            <div className="image-placeholder">IMAGE</div>
+            <h2>{products[index].name}</h2>
+            <h4>{products[index].tagline}</h4>
+            <p>{products[index].description}</p>
+            <div className="notes">
+              {products[index].notes.map((n) => (
+                <span key={n}>{n}</span>
+              ))}
+            </div>
+            <p className="mood">{products[index].mood}</p>
+            <span className="price">{products[index].price}</span>
+            <button className="buy" onClick={openModal}>Buy Now</button>
           </div>
-          <p className="mood">{products[index].mood}</p>
-          <span className="price">{products[index].price}</span>
-          <button className="buy" onClick={openModal}>Buy Now</button>
+
+          <div className="product-card ghost" ref={nextRef}></div>
         </div>
 
         <button className="arrow right" onClick={() => changeProduct("next")}>›</button>
@@ -138,7 +161,10 @@ export default function App() {
       )}
 
       <footer className="footer" id="footer">
-        <p>© 2026 Luxe Perfumes</p>
+        <div className="footer-inner">
+          <h3>LUXE</h3>
+          <p>Crafting identity through scent</p>
+        </div>
       </footer>
     </div>
   );
