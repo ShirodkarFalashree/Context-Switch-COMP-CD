@@ -1,10 +1,17 @@
+import "./App.css";
 import { useState, useEffect, useCallback, useRef } from "react";
-import { motion, AnimatePresence, useMotionValue, useSpring, useTransform } from "framer-motion";
+import {
+  motion,
+  AnimatePresence,
+  useMotionValue,
+  useSpring,
+  useTransform,
+} from "framer-motion";
 import heroVideo from "./assets/hero.mp4";
 
-/* ─────────────────────────────────────────
+/* ─────────────────────────────────────
    DATA
-───────────────────────────────────────── */
+───────────────────────────────────────*/
 const products = [
   {
     id: 1,
@@ -16,10 +23,9 @@ const products = [
     notes: ["Black Pepper", "Amber", "Musk", "Sandalwood"],
     mood: "Dark · Intense · Sensual",
     sizes: ["50ml", "100ml", "200ml"],
-    bg: "#0b0b0f",
-    bgGrad: "radial-gradient(ellipse 80% 60% at 30% 50%, #2a1a08 0%, #0b0b0f 70%)",
     accent: "#c9a96e",
-    image: "/images/noir.jpg",
+    bg: "radial-gradient(ellipse 90% 70% at 28% 50%, #2a1a08 0%, #0b0b0f 68%)",
+    image: "./assets/images/noir.jpeg",
   },
   {
     id: 2,
@@ -31,10 +37,9 @@ const products = [
     notes: ["Rose", "Peony", "Vanilla", "White Musk"],
     mood: "Romantic · Soft · Luxurious",
     sizes: ["50ml", "100ml", "200ml"],
-    bg: "#100610",
-    bgGrad: "radial-gradient(ellipse 80% 60% at 30% 50%, #2d0d1f 0%, #100610 70%)",
     accent: "#e8a0b4",
-    image: "/images/velvet.jpg",
+    bg: "radial-gradient(ellipse 90% 70% at 28% 50%, #2d0d1f 0%, #100610 68%)",
+    image: "./assets/images/velvet.jpeg",
   },
   {
     id: 3,
@@ -46,41 +51,30 @@ const products = [
     notes: ["Bergamot", "Sea Salt", "Vetiver", "Cedarwood"],
     mood: "Fresh · Clean · Modern",
     sizes: ["50ml", "100ml", "200ml"],
-    bg: "#040e1a",
-    bgGrad: "radial-gradient(ellipse 80% 60% at 30% 50%, #0a2540 0%, #040e1a 70%)",
     accent: "#7ecfe4",
+    bg: "radial-gradient(ellipse 90% 70% at 28% 50%, #0a2540 0%, #040e1a 68%)",
     image: "/images/azure.jpg",
   },
 ];
 
-/* ─────────────────────────────────────────
-   LIQUID GLASS STYLES
-   Key: very low bg opacity + no heavy tint
-   = pure refractive clarity
-───────────────────────────────────────── */
-const liquidGlass =
-  "backdrop-blur-[18px] bg-white/[0.03] border border-white/[0.1] shadow-[0_2px_24px_rgba(0,0,0,0.25),inset_0_1px_0_rgba(255,255,255,0.12),inset_0_-1px_0_rgba(0,0,0,0.1)]";
+/* ─────────────────────────────────────
+   MOTION CONFIG
+───────────────────────────────────────*/
+const SPRING        = { type: "spring", stiffness: 320, damping: 36, mass: 0.8 } as const;
+const SPRING_SNAPPY = { type: "spring", stiffness: 430, damping: 38 } as const;
+const EASE_OUT      = [0.16, 1, 0.3, 1] as const;
 
-const liquidGlassHeavy =
-  "backdrop-blur-[32px] bg-white/[0.05] border border-white/[0.12] shadow-[0_8px_48px_rgba(0,0,0,0.5),inset_0_1px_0_rgba(255,255,255,0.14),inset_0_-1px_0_rgba(0,0,0,0.12)]";
-
-/* ─────────────────────────────────────────
-   SPRING CONFIG for buttery motion
-───────────────────────────────────────── */
-const spring = { type: "spring", stiffness: 320, damping: 36, mass: 0.8 };
-const springSnappy = { type: "spring", stiffness: 420, damping: 38 };
-const easeOut = [0.16, 1, 0.3, 1];
-
-/* ─────────────────────────────────────────
-   TILT CARD (product image left panel)
-───────────────────────────────────────── */
-function TiltImage({ src, alt, accent }: { src: string; alt: string; accent: string }) {
-  const ref = useRef<HTMLDivElement>(null);
-  const rawX = useMotionValue(0);
-  const rawY = useMotionValue(0);
-  const rotX = useSpring(useTransform(rawY, [-0.5, 0.5], [6, -6]), spring);
-  const rotY = useSpring(useTransform(rawX, [-0.5, 0.5], [-6, 6]), spring);
-  const gloss = useSpring(useTransform(rawX, [-0.5, 0.5], [0, 1]), spring);
+/* ─────────────────────────────────────
+   TILT IMAGE
+───────────────────────────────────────*/
+function TiltImage({ src, accent }: { src: string; accent: string }) {
+  const ref   = useRef<HTMLDivElement>(null);
+  const rawX  = useMotionValue(0);
+  const rawY  = useMotionValue(0);
+  const rotX  = useSpring(useTransform(rawY, [-0.5, 0.5], [5, -5]), SPRING);
+  const rotY  = useSpring(useTransform(rawX, [-0.5, 0.5], [-5, 5]), SPRING);
+  const gloss = useSpring(useTransform(rawX, [-0.5, 0.5], [0, 1]), SPRING);
+  const [imgError, setImgError] = useState(false);
 
   const onMove = (e: React.MouseEvent<HTMLDivElement>) => {
     const r = ref.current?.getBoundingClientRect();
@@ -95,59 +89,69 @@ function TiltImage({ src, alt, accent }: { src: string; alt: string; accent: str
       ref={ref}
       onMouseMove={onMove}
       onMouseLeave={onLeave}
-      style={{ rotateX: rotX, rotateY: rotY, transformPerspective: 800 }}
-      className="w-full h-full relative"
+      style={{
+        rotateX: rotX,
+        rotateY: rotY,
+        perspective: 800,
+        width: "100%",
+        height: "100%",
+        position: "relative",
+      }}
     >
-      <img
-        src={src}
-        alt={alt}
-        className="absolute inset-0 w-full h-full object-cover"
-        onError={(e) => { (e.target as HTMLImageElement).style.display = "none"; }}
-      />
-      {/* fallback if no image */}
-      <div className="absolute inset-0 flex items-center justify-center">
-        <div className="text-center">
-          <motion.div
-            animate={{ scale: [1, 1.04, 1], opacity: [0.4, 0.55, 0.4] }}
-            transition={{ duration: 3.5, repeat: Infinity, ease: "easeInOut" }}
-            className="w-20 h-28 mx-auto mb-4 rounded-xl"
+      {!imgError ? (
+        <img
+          src={src}
+          alt="product"
+          onError={() => setImgError(true)}
+          style={{
+            position: "absolute",
+            inset: 0,
+            width: "100%",
+            height: "100%",
+            objectFit: "cover",
+          }}
+        />
+      ) : (
+        <div className="product-img-fallback">
+          <div
+            className="product-img-fallback-bottle"
             style={{
               background: `linear-gradient(135deg, ${accent}55, ${accent}15)`,
               border: `1px solid ${accent}40`,
-              boxShadow: `0 0 40px ${accent}30`,
+              boxShadow: `0 0 40px ${accent}28`,
             }}
           />
-          <p className="text-white/20 text-[10px] font-[system-ui] tracking-[0.3em]">PRODUCT IMAGE</p>
+          <span className="product-img-fallback-label">PRODUCT IMAGE</span>
         </div>
-      </div>
-      {/* gloss sweep */}
+      )}
+
       <motion.div
-        className="absolute inset-0 pointer-events-none rounded-none"
         style={{
+          position: "absolute",
+          inset: 0,
+          pointerEvents: "none",
           background: useTransform(
             gloss,
             [0, 1],
             [
               "linear-gradient(135deg, transparent 0%, rgba(255,255,255,0) 100%)",
-              "linear-gradient(135deg, rgba(255,255,255,0.08) 0%, transparent 60%)",
+              "linear-gradient(135deg, rgba(255,255,255,0.09) 0%, transparent 55%)",
             ]
           ),
         }}
       />
-      <div className="absolute inset-0 pointer-events-none ring-1 ring-inset ring-white/[0.06]" />
+      <div className="product-img-ring" />
     </motion.div>
   );
 }
 
-/* ─────────────────────────────────────────
-   MAIN APP
-───────────────────────────────────────── */
+/* ─────────────────────────────────────
+   APP
+───────────────────────────────────────*/
 export default function App() {
-  const [index, setIndex] = useState(0);
-  const [dir, setDir] = useState<1 | -1>(1);
-
-  /* modal state: null | "expand" | "done" */
-  const [modal, setModal] = useState<null | "open" | "done">(null);
+  const [index, setIndex]               = useState(0);
+  const [dir,   setDir]                 = useState<1 | -1>(1);
+  const [modal, setModal]               = useState<null | "open" | "done">(null);
   const [selectedSize, setSelectedSize] = useState("");
 
   const current = products[index];
@@ -165,192 +169,137 @@ export default function App() {
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
       if (e.key === "ArrowRight") go(1);
-      if (e.key === "ArrowLeft") go(-1);
-      if (e.key === "Escape") setModal(null);
+      if (e.key === "ArrowLeft")  go(-1);
+      if (e.key === "Escape")     setModal(null);
     };
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);
   }, [go]);
 
-  const openModal = () => { setSelectedSize(""); setModal("open"); };
+  const openModal  = () => { setSelectedSize(""); setModal("open"); };
   const closeModal = () => setModal(null);
-  const handleAdd = () => {
+  const handleAdd  = () => {
     if (!selectedSize) return;
     setModal("done");
     setTimeout(() => setModal(null), 1600);
   };
 
-  /* slide variants */
   const slideVariants = {
-    enter: (d: number) => ({
-      x: d > 0 ? 100 : -100,
-      opacity: 0,
-      scale: 0.96,
-      filter: "blur(4px)",
-    }),
+    enter: (d: number) => ({ x: d > 0 ? 90 : -90, opacity: 0, scale: 0.965, filter: "blur(5px)" }),
     center: { x: 0, opacity: 1, scale: 1, filter: "blur(0px)" },
-    exit: (d: number) => ({
-      x: d > 0 ? -100 : 100,
-      opacity: 0,
-      scale: 0.96,
-      filter: "blur(4px)",
-    }),
+    exit:  (d: number) => ({ x: d > 0 ? -90 : 90, opacity: 0, scale: 0.965, filter: "blur(5px)" }),
   };
 
-  /* ── background color spring ── */
-  const bgR = useSpring(parseInt(current.bg.slice(1, 3), 16), { stiffness: 80, damping: 22 });
-  const bgG = useSpring(parseInt(current.bg.slice(3, 5), 16), { stiffness: 80, damping: 22 });
-  const bgB = useSpring(parseInt(current.bg.slice(5, 7), 16), { stiffness: 80, damping: 22 });
-  useEffect(() => {
-    bgR.set(parseInt(current.bg.slice(1, 3), 16));
-    bgG.set(parseInt(current.bg.slice(3, 5), 16));
-    bgB.set(parseInt(current.bg.slice(5, 7), 16));
-  }, [current]);
-
   return (
-    <div className="min-h-screen w-full overflow-x-hidden text-white font-[Cormorant_Garamond,serif]"
-      style={{ background: "#060406" }}>
-
-      {/* ─── NAVBAR ─── */}
-      <nav className="fixed top-5 left-1/2 -translate-x-1/2 z-50 w-[min(92%,760px)]">
-  <motion.div
-    initial={{ opacity: 0, y: -16 }}
-    animate={{ opacity: 1, y: 0 }}
-    transition={{ delay: 0.4, ...spring }}
-    className={`${liquidGlass} rounded-full px-10 py-4 flex items-center justify-between`}
-  >
-    <span className="tracking-[0.45em] text-[12px] font-semibold text-white/90 font-[system-ui]">
-      LUXE
-    </span>
-
-    <div className="flex gap-10 text-[13px] text-white/60 font-[system-ui]">
-      {["Story", "Fragrance", "Contact"].map((l) => (
-        <a
-          key={l}
-          href={`#${l.toLowerCase()}`}
-          className="hover:text-white/90 transition-colors duration-300 relative group"
+    <>
+      {/* ── NAVBAR ── */}
+      <nav className="navbar">
+        <motion.div
+          className="navbar-inner glass"
+          initial={{ opacity: 0, y: -18 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.4, ...SPRING }}
         >
-          {l}
-          <span className="absolute -bottom-1 left-0 right-0 h-px bg-white/30 scale-x-0 group-hover:scale-x-100 transition-transform duration-300 origin-left" />
-        </a>
-      ))}
-    </div>
-  </motion.div>
-</nav>
+          <span className="navbar-logo">LUXE</span>
+          <ul className="navbar-links">
+            {["Story", "Fragrance", "Contact"].map((l) => (
+              <li key={l}><a href={`#${l.toLowerCase()}`}>{l}</a></li>
+            ))}
+          </ul>
+        </motion.div>
+      </nav>
 
-      {/* ─── HERO ─── */}
-      <section className="relative h-screen w-full overflow-hidden">
-        <video
-          src={heroVideo}
-          autoPlay
-          loop
-          muted
-          playsInline
-          className="absolute inset-0 w-full h-full object-cover scale-[1.04]"
-          style={{ filter: "brightness(0.85) contrast(1.05)" }}
-        />
-        {/* vignette only, no tint */}
-        <div className="absolute inset-0 bg-gradient-to-b from-black/40 via-black/5 to-black/70" />
+      {/* ── HERO ── */}
+      <section className="hero">
+        <video className="hero-video" src={heroVideo} autoPlay loop muted playsInline />
+        <div className="hero-vignette" />
 
-        <div className="absolute inset-0 flex flex-col items-center justify-center text-center px-6">
+        <div className="hero-content">
           <motion.p
+            className="hero-eyebrow"
             initial={{ opacity: 0, letterSpacing: "0.2em" }}
             animate={{ opacity: 1, letterSpacing: "0.5em" }}
-            transition={{ delay: 0.7, duration: 1.2 }}
-            className="text-[10px] text-white/45 mb-5 font-[system-ui] uppercase"
+            transition={{ delay: 0.7, duration: 1.3 }}
           >
             A New Era of Scent
           </motion.p>
 
           <motion.h1
-            initial={{ opacity: 0, y: 32 }}
+            className="hero-title"
+            initial={{ opacity: 0, y: 36 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.9, duration: 1.4, ease: easeOut }}
-            className="text-[clamp(52px,9vw,130px)] leading-[0.92] tracking-[-0.02em] text-white font-light"
+            transition={{ delay: 0.9, duration: 1.4, ease: EASE_OUT }}
           >
-            Luxury<br />
-            <em className="italic">Redefined</em>
+            Luxury<br /><em>Redefined</em>
           </motion.h1>
 
           <motion.div
             initial={{ opacity: 0, y: 16 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 1.5, duration: 1, ease: easeOut }}
-            className="mt-10"
+            transition={{ delay: 1.5, duration: 1, ease: EASE_OUT }}
           >
             <motion.a
               href="#fragrance"
+              className="hero-cta glass"
               whileHover={{ scale: 1.04 }}
               whileTap={{ scale: 0.97 }}
-              className={`${liquidGlass} inline-block px-9 py-3.5 rounded-full text-[12px] text-white/75 hover:text-white transition-colors duration-300 font-[system-ui] tracking-[0.2em]`}
             >
-              EXPLORE THE COLLECTION
+              Explore the Collection
             </motion.a>
           </motion.div>
         </div>
 
-        {/* scroll indicator */}
         <motion.div
-          className="absolute bottom-8 left-1/2 -translate-x-1/2 flex flex-col items-center gap-2.5"
+          className="hero-scroll"
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           transition={{ delay: 2.2, duration: 1 }}
         >
-          <span className="text-white/25 text-[9px] tracking-[0.4em] font-[system-ui]">SCROLL</span>
-          <motion.div
-            className="w-px h-8 bg-gradient-to-b from-white/30 to-transparent"
-            animate={{ scaleY: [0.4, 1, 0.4], opacity: [0.4, 0.8, 0.4] }}
-            transition={{ duration: 2, repeat: Infinity, ease: "easeInOut" }}
-          />
+          <span className="hero-scroll-label">Scroll</span>
+          <div className="hero-scroll-line" />
         </motion.div>
       </section>
 
-      {/* ─── STORY ─── */}
-      <section
-        id="story"
-        className="min-h-screen flex items-center justify-center px-6 py-24"
-        style={{ background: "#080608" }}
-      >
-        <div className="max-w-6xl w-full grid md:grid-cols-2 gap-12 items-center">
+      {/* ── STORY ── */}
+      <section id="story" className="story">
+        <div className="story-grid">
           <motion.div
-            initial={{ opacity: 0, x: -50, scale: 0.97 }}
+            className="story-image-wrap"
+            initial={{ opacity: 0, x: -48, scale: 0.97 }}
             whileInView={{ opacity: 1, x: 0, scale: 1 }}
             viewport={{ once: true, amount: 0.3 }}
-            transition={{ duration: 1.3, ease: easeOut }}
-            className="rounded-3xl overflow-hidden aspect-[3/4] relative"
-            style={{ boxShadow: "0 24px 72px rgba(0,0,0,0.55), 0 0 0 1px rgba(255,255,255,0.06)" }}
+            transition={{ duration: 1.3, ease: EASE_OUT }}
           >
             <img
               src="https://images.unsplash.com/photo-1619994403073-2cec9c04fdb8?q=80&w=1200"
               alt="Our story"
-              className="w-full h-full object-cover"
             />
-            <div className="absolute inset-0 rounded-3xl ring-1 ring-white/[0.07] pointer-events-none" />
+            <div className="story-image-ring" />
           </motion.div>
 
           <motion.div
-            initial={{ opacity: 0, x: 50 }}
+            className="story-card glass"
+            initial={{ opacity: 0, x: 48 }}
             whileInView={{ opacity: 1, x: 0 }}
             viewport={{ once: true, amount: 0.3 }}
-            transition={{ duration: 1.3, ease: easeOut, delay: 0.12 }}
-            className={`${liquidGlass} rounded-3xl p-10 md:p-14`}
+            transition={{ duration: 1.3, ease: EASE_OUT, delay: 0.1 }}
           >
-            <span className="text-[10px] tracking-[0.6em] text-white/35 font-[system-ui] uppercase block mb-6">
-              Our Story
-            </span>
-            <h2 className="text-4xl md:text-5xl font-light leading-tight mb-5">
-              Crafted<br /><em className="italic">Identity</em>
-            </h2>
-            <p className="text-white/50 text-sm leading-relaxed mb-10 font-[system-ui]">
+            <span className="story-eyebrow">Our Story</span>
+            <h2 className="story-title">Crafted<br /><em>Identity</em></h2>
+            <p className="story-body">
               Designed for those who command presence. Each fragrance captures
               emotion, depth, and individuality in every drop — a signature
               scent built not just to be worn, but to be remembered.
             </p>
-            <div className="grid grid-cols-3 gap-6 pt-6 border-t border-white/[0.06]">
-              {[{ n: "01", l: "Refined" }, { n: "02", l: "Layered" }, { n: "03", l: "Unique" }].map(({ n, l }) => (
+            <div className="story-pillars">
+              {[
+                { n: "01", l: "Refined" },
+                { n: "02", l: "Layered" },
+                { n: "03", l: "Unique" },
+              ].map(({ n, l }) => (
                 <div key={n}>
-                  <p className="text-2xl font-light text-white/25 mb-1">{n}</p>
-                  <p className="text-[11px] tracking-[0.2em] text-white/55 font-[system-ui] uppercase">{l}</p>
+                  <p className="pillar-num">{n}</p>
+                  <p className="pillar-label">{l}</p>
                 </div>
               ))}
             </div>
@@ -358,192 +307,166 @@ export default function App() {
         </div>
       </section>
 
-      {/* ─── PRODUCT SECTION ─── */}
+      {/* ── PRODUCT ── */}
       <section
         id="fragrance"
-        className="min-h-screen flex items-center justify-center px-4 sm:px-6 py-24 relative overflow-hidden transition-all duration-1000"
-        style={{ background: current.bgGrad }}
+        className="product-section"
+        style={{ background: current.bg, transition: "background 1.1s ease" }}
       >
-        {/* soft ambient orb */}
         <AnimatePresence mode="wait">
           <motion.div
             key={current.id + "_orb"}
+            className="product-orb"
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
             transition={{ duration: 1.2 }}
-            className="absolute inset-0 pointer-events-none"
             style={{
-              background: `radial-gradient(ellipse 50% 50% at 25% 50%, ${current.accent}12 0%, transparent 70%)`,
+              background: `radial-gradient(ellipse 48% 48% at 24% 50%, ${current.accent}14 0%, transparent 70%)`,
             }}
           />
         </AnimatePresence>
+        <div className="product-grain" />
 
-        {/* noise grain */}
-        <div
-          className="absolute inset-0 opacity-[0.035] pointer-events-none"
-          style={{
-            backgroundImage:
-              "url(\"data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)'/%3E%3C/svg%3E\")",
-          }}
-        />
-
-        {/* ← arrow */}
+        {/* nav arrows */}
         <AnimatePresence>
           {index > 0 && (
             <motion.button
-              initial={{ opacity: 0, x: -8 }}
+              className="nav-arrow nav-prev glass"
+              initial={{ opacity: 0, x: -10 }}
               animate={{ opacity: 1, x: 0 }}
-              exit={{ opacity: 0, x: -8 }}
-              transition={spring}
+              exit={{ opacity: 0, x: -10 }}
+              transition={SPRING}
               whileHover={{ scale: 1.1 }}
               whileTap={{ scale: 0.9 }}
               onClick={() => go(-1)}
-              className={`absolute left-3 md:left-8 z-10 w-11 h-11 rounded-full ${liquidGlass} flex items-center justify-center text-white/50 hover:text-white transition-colors duration-200`}
               aria-label="Previous"
             >
               <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
-                <path d="M10 3L5 8L10 13" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+                <path d="M10 3L5 8L10 13" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
               </svg>
             </motion.button>
           )}
         </AnimatePresence>
 
-        {/* → arrow */}
         <AnimatePresence>
           {index < products.length - 1 && (
             <motion.button
-              initial={{ opacity: 0, x: 8 }}
+              className="nav-arrow nav-next glass"
+              initial={{ opacity: 0, x: 10 }}
               animate={{ opacity: 1, x: 0 }}
-              exit={{ opacity: 0, x: 8 }}
-              transition={spring}
+              exit={{ opacity: 0, x: 10 }}
+              transition={SPRING}
               whileHover={{ scale: 1.1 }}
               whileTap={{ scale: 0.9 }}
               onClick={() => go(1)}
-              className={`absolute right-3 md:right-8 z-10 w-11 h-11 rounded-full ${liquidGlass} flex items-center justify-center text-white/50 hover:text-white transition-colors duration-200`}
               aria-label="Next"
             >
               <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
-                <path d="M6 3L11 8L6 13" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+                <path d="M6 3L11 8L6 13" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
               </svg>
             </motion.button>
           )}
         </AnimatePresence>
 
-        {/* dots */}
-        <div className="absolute bottom-8 left-1/2 -translate-x-1/2 flex gap-2 z-10">
+        {/* progress dots */}
+        <div className="product-dots">
           {products.map((_, i) => (
             <motion.button
               key={i}
+              className={`product-dot ${i === index ? "active" : "inactive"}`}
               onClick={() => { setDir(i > index ? 1 : -1); setIndex(i); }}
-              animate={{ width: i === index ? 28 : 6, opacity: i === index ? 0.75 : 0.3 }}
-              transition={spring}
-              className="h-1.5 rounded-full bg-white"
-              aria-label={`Go to product ${i + 1}`}
+              animate={{ width: i === index ? 28 : 6, opacity: i === index ? 0.75 : 0.28 }}
+              transition={SPRING}
             />
           ))}
         </div>
 
         {/* keyboard hint */}
-        <div className="absolute bottom-8 right-6 hidden md:flex items-center gap-1.5 opacity-25">
+        <div className="keyboard-hint">
           {["←", "→"].map((k) => (
-            <span key={k} className={`${liquidGlass} text-[10px] px-2 py-1 rounded font-[system-ui]`}>{k}</span>
+            <span key={k} className="key-cap glass">{k}</span>
           ))}
-          <span className="text-[10px] font-[system-ui] text-white/50 ml-1">navigate</span>
+          <span className="key-label">navigate</span>
         </div>
 
-        {/* ── PRODUCT CARD ── */}
+        {/* product card */}
         <AnimatePresence mode="wait" custom={dir}>
           <motion.div
             key={current.id}
+            className="product-card"
             custom={dir}
             variants={slideVariants}
             initial="enter"
             animate="center"
             exit="exit"
-            transition={{ duration: 0.6, ease: easeOut }}
-            className="max-w-5xl w-full grid md:grid-cols-2 rounded-3xl overflow-hidden relative"
-            style={{
-              boxShadow: `0 40px 100px rgba(0,0,0,0.65), 0 0 0 1px rgba(255,255,255,0.07), inset 0 1px 0 rgba(255,255,255,0.05)`,
-            }}
+            transition={{ duration: 0.58, ease: EASE_OUT }}
           >
-            {/* LEFT — Image with tilt */}
-            <div
-              className="relative aspect-square md:aspect-auto min-h-[320px] overflow-hidden"
-              style={{ background: "rgba(0,0,0,0.35)" }}
-            >
-              <TiltImage src={current.image} alt={current.name} accent={current.accent} />
+            {/* Left — image */}
+            <div className="product-image-panel">
+              <TiltImage src={current.image} accent={current.accent} />
             </div>
 
-            {/* RIGHT — Info */}
-            <div
-              className="flex flex-col justify-center p-8 sm:p-10 md:p-14 relative"
-              style={{
-                background: "linear-gradient(135deg, rgba(255,255,255,0.04) 0%, rgba(0,0,0,0.15) 100%)",
-                backdropFilter: "blur(36px) saturate(110%)",
-                WebkitBackdropFilter: "blur(36px) saturate(110%)",
-              }}
-            >
-              {/* accent line */}
-              <motion.div
-                className="absolute left-0 top-1/2 -translate-y-1/2 w-px h-16 hidden md:block"
+            {/* Right — info */}
+            <div className="product-info-panel">
+              <div
+                className="product-accent-line"
                 style={{ background: `${current.accent}40` }}
               />
 
               <motion.span
+                className="product-mood"
+                style={{ color: current.accent }}
                 initial={{ opacity: 0, y: 8 }}
                 animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: 0.15, ...spring }}
-                className="text-[10px] tracking-[0.55em] font-[system-ui] uppercase mb-4 block"
-                style={{ color: current.accent }}
+                transition={{ delay: 0.12, ...SPRING }}
               >
                 {current.mood}
               </motion.span>
 
               <motion.h2
-                initial={{ opacity: 0, y: 12 }}
+                className="product-name"
+                initial={{ opacity: 0, y: 14 }}
                 animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: 0.2, ...spring }}
-                className="text-4xl sm:text-5xl font-light leading-none mb-1"
+                transition={{ delay: 0.18, ...SPRING }}
               >
                 {current.name}
               </motion.h2>
 
               <motion.p
+                className="product-tagline"
                 initial={{ opacity: 0 }}
                 animate={{ opacity: 1 }}
-                transition={{ delay: 0.25 }}
-                className="text-white/35 text-base italic mb-6"
+                transition={{ delay: 0.22 }}
               >
                 {current.tagline}
               </motion.p>
 
               <motion.p
-                initial={{ opacity: 0, y: 6 }}
+                className="product-desc"
+                initial={{ opacity: 0, y: 8 }}
                 animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: 0.3, ...spring }}
-                className="text-white/55 text-sm leading-relaxed font-[system-ui] mb-8"
+                transition={{ delay: 0.27, ...SPRING }}
               >
                 {current.description}
               </motion.p>
 
-              {/* Notes */}
               <motion.div
+                className="product-notes"
                 initial={{ opacity: 0 }}
                 animate={{ opacity: 1 }}
-                transition={{ delay: 0.35 }}
-                className="flex flex-wrap gap-2 mb-9"
+                transition={{ delay: 0.32 }}
               >
                 {current.notes.map((n, i) => (
                   <motion.span
                     key={n}
-                    initial={{ opacity: 0, scale: 0.9 }}
+                    className="note-pill"
+                    initial={{ opacity: 0, scale: 0.88 }}
                     animate={{ opacity: 1, scale: 1 }}
-                    transition={{ delay: 0.35 + i * 0.05, ...springSnappy }}
-                    className="text-[11px] px-3 py-1.5 rounded-full font-[system-ui] tracking-wider"
+                    transition={{ delay: 0.32 + i * 0.055, ...SPRING_SNAPPY }}
                     style={{
-                      background: `${current.accent}16`,
-                      border: `1px solid ${current.accent}32`,
+                      background: `${current.accent}17`,
+                      border: `1px solid ${current.accent}34`,
                       color: current.accent,
                     }}
                   >
@@ -552,27 +475,26 @@ export default function App() {
                 ))}
               </motion.div>
 
-              {/* Price + CTA */}
               <motion.div
-                initial={{ opacity: 0, y: 10 }}
+                className="product-cta-row"
+                initial={{ opacity: 0, y: 12 }}
                 animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: 0.4, ...spring }}
-                className="flex items-center gap-5"
+                transition={{ delay: 0.38, ...SPRING }}
               >
-                <span className="text-3xl font-light">{current.price}</span>
+                <span className="product-price">{current.price}</span>
                 <motion.button
+                  className="btn-buy"
                   whileHover={{ scale: 1.04 }}
                   whileTap={{ scale: 0.96 }}
                   onClick={openModal}
-                  className="px-8 py-3 rounded-full text-[12px] font-[system-ui] tracking-[0.18em] transition-all duration-300"
                   style={{
                     background: `linear-gradient(135deg, ${current.accent}28, ${current.accent}10)`,
-                    border: `1px solid ${current.accent}50`,
+                    border: `1px solid ${current.accent}52`,
                     color: current.accent,
-                    boxShadow: `0 4px 20px ${current.accent}20`,
+                    boxShadow: `0 4px 22px ${current.accent}1a`,
                   }}
                 >
-                  BUY NOW
+                  Buy Now
                 </motion.button>
               </motion.div>
             </div>
@@ -580,105 +502,86 @@ export default function App() {
         </AnimatePresence>
       </section>
 
-      {/* ─── MODAL — Buy Now (sheet-to-expand) ─── */}
+      {/* ── MODAL ── */}
       <AnimatePresence>
         {modal && (
           <motion.div
+            className="modal-backdrop"
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            transition={{ duration: 0.3 }}
-            className="fixed inset-0 z-50 flex items-end sm:items-center justify-center sm:p-6"
-            style={{ background: "rgba(0,0,0,0.65)", backdropFilter: "blur(12px)" }}
+            transition={{ duration: 0.28 }}
             onClick={closeModal}
           >
             <motion.div
+              className="modal-sheet glass-heavy"
               initial={{ y: "100%", opacity: 0, scale: 0.96 }}
               animate={{ y: 0, opacity: 1, scale: 1 }}
-              exit={{ y: "60%", opacity: 0, scale: 0.95 }}
-              transition={{ duration: 0.55, ease: easeOut }}
-              className={`${liquidGlassHeavy} rounded-t-[28px] sm:rounded-[28px] w-full sm:w-auto sm:min-w-[440px] sm:max-w-[480px] p-8 sm:p-10 relative overflow-hidden`}
+              exit={{ y: "55%", opacity: 0, scale: 0.95 }}
+              transition={{ duration: 0.52, ease: EASE_OUT }}
               onClick={(e) => e.stopPropagation()}
             >
-              {/* accent glow behind */}
               <div
-                className="absolute -top-16 -right-16 w-48 h-48 rounded-full pointer-events-none"
-                style={{ background: `${current.accent}10`, filter: "blur(40px)" }}
+                className="modal-glow"
+                style={{ background: `${current.accent}0e` }}
               />
 
-              {/* drag handle (mobile) */}
-              <div className="w-10 h-1 bg-white/20 rounded-full mx-auto mb-7 sm:hidden" />
+              <span className="modal-drag-handle" />
 
-              {/* close */}
               <motion.button
+                className="modal-close"
                 whileHover={{ scale: 1.1 }}
                 whileTap={{ scale: 0.9 }}
                 onClick={closeModal}
-                className="absolute top-5 right-5 w-8 h-8 rounded-full bg-white/[0.07] hover:bg-white/[0.13] border border-white/[0.1] flex items-center justify-center text-white/45 hover:text-white transition-all text-sm"
               >
                 ✕
               </motion.button>
 
-              <span
-                className="text-[9px] tracking-[0.55em] font-[system-ui] uppercase mb-1 block"
-                style={{ color: current.accent }}
-              >
+              <span className="modal-label" style={{ color: current.accent }}>
                 Add to Cart
               </span>
-              <h3 className="text-[28px] font-light mb-1">{current.name}</h3>
-              <p className="text-white/35 text-sm italic mb-8">{current.tagline}</p>
+              <h3 className="modal-name">{current.name}</h3>
+              <p className="modal-tagline">{current.tagline}</p>
 
-              {/* Size selector */}
-              <p className="text-[10px] tracking-[0.35em] text-white/35 font-[system-ui] uppercase mb-3">
-                Select Size
-              </p>
-              <div className="flex gap-3 mb-8">
+              <p className="modal-size-label">Select Size</p>
+              <div className="modal-sizes">
                 {current.sizes.map((s) => {
                   const active = selectedSize === s;
                   return (
                     <motion.button
                       key={s}
+                      className="size-btn"
                       whileTap={{ scale: 0.93 }}
                       onClick={() => setSelectedSize(s)}
-                      className="flex-1 py-3 rounded-xl text-sm font-[system-ui] relative overflow-hidden transition-all duration-300"
                       style={
                         active
                           ? {
                               background: `${current.accent}22`,
                               border: `1px solid ${current.accent}60`,
                               color: current.accent,
-                              boxShadow: `inset 0 1px 0 ${current.accent}20`,
                             }
                           : {
                               background: "rgba(255,255,255,0.04)",
-                              border: "1px solid rgba(255,255,255,0.08)",
+                              border: "1px solid rgba(255,255,255,0.09)",
                               color: "rgba(255,255,255,0.45)",
                             }
                       }
                     >
-                      {active && (
-                        <motion.div
-                          layoutId="sizeActive"
-                          className="absolute inset-0 rounded-xl"
-                          style={{ background: `${current.accent}12` }}
-                          transition={spring}
-                        />
-                      )}
-                      <span className="relative">{s}</span>
+                      {s}
                     </motion.button>
                   );
                 })}
               </div>
 
-              <div className="flex items-baseline justify-between mb-6">
-                <span className="text-[26px] font-light">{current.price}</span>
+              <div className="modal-price-row">
+                <span className="modal-price">{current.price}</span>
                 <AnimatePresence>
                   {!selectedSize && (
                     <motion.span
+                      className="modal-size-hint"
                       initial={{ opacity: 0 }}
                       animate={{ opacity: 1 }}
                       exit={{ opacity: 0 }}
-                      className="text-[11px] text-white/25 font-[system-ui]"
                     >
                       select a size
                     </motion.span>
@@ -686,27 +589,27 @@ export default function App() {
                 </AnimatePresence>
               </div>
 
-              {/* CTA button — morphs to success */}
               <AnimatePresence mode="wait">
                 {modal === "done" ? (
                   <motion.div
                     key="done"
-                    initial={{ opacity: 0, scale: 0.93, y: 8 }}
+                    className="btn-add-success"
+                    initial={{ opacity: 0, scale: 0.92, y: 10 }}
                     animate={{ opacity: 1, scale: 1, y: 0 }}
                     exit={{ opacity: 0 }}
-                    transition={spring}
-                    className="w-full py-4 rounded-2xl text-[12px] font-[system-ui] tracking-[0.2em] text-center"
+                    transition={SPRING}
                     style={{
-                      background: `${current.accent}20`,
+                      background: `${current.accent}1e`,
                       border: `1px solid ${current.accent}50`,
                       color: current.accent,
                     }}
                   >
-                    ✓ ADDED TO CART
+                    ✓ Added to Cart
                   </motion.div>
                 ) : (
                   <motion.button
                     key="add"
+                    className="btn-add"
                     initial={{ opacity: 0 }}
                     animate={{ opacity: 1 }}
                     exit={{ opacity: 0, scale: 0.96 }}
@@ -714,25 +617,23 @@ export default function App() {
                     whileTap={selectedSize ? { scale: 0.97 } : {}}
                     onClick={handleAdd}
                     disabled={!selectedSize}
-                    transition={spring}
-                    className="w-full py-4 rounded-2xl text-[12px] font-[system-ui] tracking-[0.2em] transition-all duration-400"
+                    transition={SPRING}
                     style={
                       selectedSize
                         ? {
-                            background: `linear-gradient(135deg, ${current.accent}35, ${current.accent}18)`,
-                            border: `1px solid ${current.accent}55`,
+                            background: `linear-gradient(135deg, ${current.accent}38, ${current.accent}18)`,
+                            border: `1px solid ${current.accent}56`,
                             color: current.accent,
-                            boxShadow: `0 6px 30px ${current.accent}20`,
+                            boxShadow: `0 6px 32px ${current.accent}22`,
                           }
                         : {
                             background: "rgba(255,255,255,0.03)",
                             border: "1px solid rgba(255,255,255,0.07)",
                             color: "rgba(255,255,255,0.18)",
-                            cursor: "not-allowed",
                           }
                     }
                   >
-                    ADD TO CART
+                    Add to Cart
                   </motion.button>
                 )}
               </AnimatePresence>
@@ -741,53 +642,35 @@ export default function App() {
         )}
       </AnimatePresence>
 
-      {/* ─── FOOTER ─── */}
-      <section
-        id="contact"
-        className="min-h-[45vh] flex items-center justify-center px-6 py-20 relative"
-        style={{ background: "#060406" }}
-      >
-        <div className="max-w-4xl w-full grid md:grid-cols-3 gap-12">
-          <div className="md:col-span-1">
-            <p className="tracking-[0.5em] text-[10px] text-white/25 font-[system-ui] mb-3">LUXE</p>
-            <h2 className="text-4xl font-light mb-4">
-              Crafted for<br /><em className="italic">Memory</em>
+      {/* ── FOOTER ── */}
+      <footer id="contact" className="footer">
+        <div className="footer-grid">
+          <div>
+            <p className="footer-brand-label">LUXE</p>
+            <h2 className="footer-headline">
+              Crafted for<br /><em>Memory</em>
             </h2>
-            <p className="text-white/35 text-sm font-[system-ui] leading-relaxed">
-              Fragrances that leave a mark.
-            </p>
+            <p className="footer-tagline">Fragrances that leave a mark.</p>
           </div>
 
-          <div className="md:col-span-2 grid grid-cols-2 gap-8 items-start">
+          <div className="footer-links-grid">
             {[
               { label: "Collection", links: ["Noir Essence", "Velvet Bloom", "Azure Mist"] },
-              { label: "Company", links: ["Our Story", "Craft", "Contact"] },
+              { label: "Company",    links: ["Our Story", "Craft", "Contact"] },
             ].map(({ label, links }) => (
-              <div key={label}>
-                <p className="text-[10px] tracking-[0.45em] text-white/25 font-[system-ui] uppercase mb-4">
-                  {label}
-                </p>
-                <ul className="space-y-3">
+              <div className="footer-col" key={label}>
+                <p className="footer-col-label">{label}</p>
+                <ul>
                   {links.map((l) => (
-                    <li key={l}>
-                      <a
-                        href="#"
-                        className="text-sm text-white/45 hover:text-white/90 transition-colors duration-300 font-[system-ui]"
-                      >
-                        {l}
-                      </a>
-                    </li>
+                    <li key={l}><a href="#">{l}</a></li>
                   ))}
                 </ul>
               </div>
             ))}
           </div>
         </div>
-
-        <p className="absolute bottom-6 left-1/2 -translate-x-1/2 text-white/15 text-[10px] font-[system-ui] tracking-widest whitespace-nowrap">
-          © 2026 LUXE — ALL RIGHTS RESERVED
-        </p>
-      </section>
-    </div>
+        <p className="footer-copy">© 2026 LUXE — ALL RIGHTS RESERVED</p>
+      </footer>
+    </>
   );
 }
